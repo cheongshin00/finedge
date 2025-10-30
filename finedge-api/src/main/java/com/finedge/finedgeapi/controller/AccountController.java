@@ -1,7 +1,10 @@
 package com.finedge.finedgeapi.controller;
 
 import com.finedge.finedgeapi.entity.Account;
+import com.finedge.finedgeapi.entity.User;
+import com.finedge.finedgeapi.security.CustomUserDetails;
 import com.finedge.finedgeapi.service.AccountService;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -9,29 +12,23 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/accounts")
 public class AccountController {
-    private final AccountService service;
+    private final AccountService accountService;
 
-    public AccountController(AccountService service){
-        this.service = service;
+    public AccountController(AccountService accountService){
+        this.accountService = accountService;
     }
 
     @GetMapping
-    public List<Account> getAll(){
-        return service.getAll();
-    }
-
-    @GetMapping("/{id}")
-    public Account getById(@PathVariable Long id){
-        return service.getById(id).orElse(null);
+    public List<Account> getAccounts(@AuthenticationPrincipal CustomUserDetails userDetails){
+        User user = userDetails.getUser();
+        return accountService.getAccountByUser(user);
     }
 
     @PostMapping
-    public Account create(@RequestBody Account account){
-        return service.create(account);
-    }
+    public Account createAccount(@AuthenticationPrincipal CustomUserDetails userDetails,
+                                 @RequestParam String accountType, @RequestParam String currency){
+        User user = userDetails.getUser();
+        return accountService.create(user, accountType,currency);
 
-    @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id){
-        service.delete(id);
     }
 }
