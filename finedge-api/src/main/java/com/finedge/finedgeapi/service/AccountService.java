@@ -3,6 +3,7 @@ package com.finedge.finedgeapi.service;
 import com.finedge.finedgeapi.entity.Account;
 import com.finedge.finedgeapi.entity.User;
 import com.finedge.finedgeapi.repository.AccountRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -29,16 +30,11 @@ public class AccountService {
         return repo.findAll();
     }
 
-    public List<Account> getMyAccounts(){
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String username = authentication.getName();
-        return repo.findByOwnerName(username);
-    }
-
     public Optional<Account> getById(Long id){
         return repo.findById(id);
     }
 
+    @Transactional
     public Account create(User user, String accountType , String currency){
         Account account = Account.builder()
                 .accountNumber(UUID.randomUUID().toString().substring(0,10))
