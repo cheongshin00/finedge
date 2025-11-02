@@ -8,6 +8,7 @@ import com.finedge.finedgeapi.security.JwtUtil;
 import com.finedge.finedgeapi.service.AuthService;
 import io.jsonwebtoken.Jwt;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -37,6 +38,18 @@ public class AuthController {
         authService.register(username, password, role);
         return ResponseEntity.ok("User registered successfully");
     }
+
+    @PostMapping("/admin/register")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> registerAdmin(@RequestBody Map<String, String> request){
+        String username = request.get("username");
+        String password = request.get("password");
+        Role role = Role.valueOf(request.getOrDefault("role", "ADMIN").toUpperCase());
+
+        authService.register(username, password, role);
+        return ResponseEntity.ok("Admin registered successfully");
+    }
+
 
     @PostMapping("/login")
     public ResponseEntity<Map<String, String>> login(@RequestBody Map<String, String> request){

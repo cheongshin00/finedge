@@ -11,6 +11,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.HashSet;
+
 @Service
 public class AuthService {
 
@@ -44,7 +46,9 @@ public class AuthService {
         User newUser = new User();
         newUser.setUsername(username);
         newUser.setPassword(passwordEncoder.encode(password));
-        newUser.setRole(role);
+        HashSet<Role> role1 = new HashSet<Role>();
+        role1.add(role);
+        newUser.setRole(role1);
 
         userRepository.save(newUser);
     }
