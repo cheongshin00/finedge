@@ -2,6 +2,7 @@ package com.finedge.finedgeapi.controller;
 
 import com.finedge.finedgeapi.entity.Account;
 import com.finedge.finedgeapi.service.AccountService;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,9 +17,16 @@ public class AccountController {
     }
 
     @GetMapping
-    public List<Account> getAll(){
-        return service.getAll();
+    @PreAuthorize("hasRole('ADMIN')")
+    public List<Account> getAllAccounts(){
+        return service.getAllAccounts();
     }
+
+    @GetMapping("/me")
+    @PreAuthorize("hasRole('CUSTOMER')")
+    public List<Account> getMyAccounts(){
+        return service.getMyAccounts();
+    };
 
     @GetMapping("/{id}")
     public Account getById(@PathVariable Long id){
@@ -26,7 +34,8 @@ public class AccountController {
     }
 
     @PostMapping
-    public Account create(@RequestBody Account account){
+    @PreAuthorize("hasRole('CUSTOMER')")
+    public Account createAccount(@RequestBody Account account){
         return service.create(account);
     }
 

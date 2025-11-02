@@ -2,6 +2,8 @@ package com.finedge.finedgeapi.service;
 
 import com.finedge.finedgeapi.entity.Account;
 import com.finedge.finedgeapi.repository.AccountRepository;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -15,8 +17,14 @@ public class AccountService {
         this.repo = repo;
     }
 
-    public List<Account> getAll(){
+    public List<Account> getAllAccounts(){
         return repo.findAll();
+    }
+
+    public List<Account> getMyAccounts(){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+        return repo.findByOwnerName(username);
     }
 
     public Optional<Account> getById(Long id){
