@@ -1,9 +1,20 @@
 package com.finedge.finedgeapi.entity;
 
+import com.fasterxml.jackson.annotation.JsonAnySetter;
 import jakarta.persistence.*;
+import lombok.*;
+
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
 
 @Entity
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Table(name = "accounts")
 public class Account {
 
@@ -11,47 +22,18 @@ public class Account {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    private String accountNumber;
 
-    private String ownerName;
-
-    private String email;
+    private String accountType;
 
     private BigDecimal balance;
 
-    public Account(){}
+    private String currency;
 
+    private LocalDateTime createdDt;
 
-    public Account(String ownerName, String email, BigDecimal balance){
-        this.ownerName = ownerName;
-        this.email = email;
-        this.balance = balance;
-    }
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
 
-    public String getOwnerName() {
-        return ownerName;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public BigDecimal getBalance() {
-        return balance;
-    }
-
-    public void setOwnerName(String ownerName) {
-        this.ownerName = ownerName;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public void setBalance(BigDecimal balance) {
-        this.balance = balance;
-    }
-
-    public Long getId() {
-        return id;
-    }
 }
