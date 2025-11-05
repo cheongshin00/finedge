@@ -53,4 +53,43 @@ public class TransactionService {
     public List<Transaction> getAccountTransactions(String accountNumber) {
         return transactionRepository.findBySenderAccountNumberOrReceiverAccountNumber(accountNumber, accountNumber);
     }
+
+    @Transactional
+    public Transaction deposit(String accountNumber, BigDecimal amount, String description) {
+        Account account = accountRepository.findByAccountNumber(accountNumber)
+                .orElseThrow(() ->new RuntimeException("Account not found"));
+        if (account.getBalance().compareTo(amount) < 0) {
+            throw new RuntimeException("Insufficient funds");
+        }
+        account.setBalance(account.getBalance().add(amount));
+        accountRepository.save(account);
+
+        Transaction txn = new Transaction();
+        txn.setReceiverAccountNumber(accountNumber);
+        txn.setAmount(amount);
+        txn.setType(TransactionType.DEPOSIT);
+        txn.setDescription(description);
+
+        return transactionRepository.save(txn);
+
+    }
+
+    @Transactional
+    public Transaction withdraw(String accountNumber, BigDecimal amount, String description){
+        Account account = accountRepository.findByAccountNumber(accountNumber)
+                .orElseThrow(() ->new RuntimeException("Account not found"));
+        if (account.getBalance().compareTo(amount) < 0) {
+            throw new RuntimeException("Insufficient funds");
+        }
+        account.setBalance(account.getBalance().subtract(amount));
+        accountRepository.save(account);
+
+        Transaction txn = new Transaction();
+        txn.setSenderAccountNumber(accountNumber);
+        txn.setAmount(amount);
+        txn.setType(TransactionType.DEPOSIT);
+        txn.setDescription(description);
+
+        return transactionRepository.save(txn);
+    }
 }
