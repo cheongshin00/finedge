@@ -38,4 +38,24 @@ public class TransactionController {
         return transactionService.getAccountTransactions(accountNumber);
     }
 
+    @PostMapping("/deposit")
+    @PreAuthorize("hasRole('CUSTOMER') or hasRole('ADMIN')")
+    public Transaction deposit (@RequestBody Map<String, Object> request) {
+        String account = (String) request.get("account");
+        BigDecimal amount = new BigDecimal(request.get("amount").toString());
+        String description = (String) request.get("description");
+
+        return transactionService.deposit(account, amount, description);
+    }
+
+    @PostMapping("/withdraw")
+    @PreAuthorize("hasRole('CUSTOMER') or hasRole('ADMIN')")
+    public Transaction withdraw (@RequestBody Map<String, Object> request) {
+        String account = (String) request.get("account");
+        BigDecimal amount = new BigDecimal(request.get("amount").toString());
+        String description = (String) request.get("description");
+
+        return transactionService.withdraw(account, amount, description);
+    }
+
 }
