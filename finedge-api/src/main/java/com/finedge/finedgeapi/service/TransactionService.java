@@ -58,9 +58,9 @@ public class TransactionService {
     public Transaction deposit(String accountNumber, BigDecimal amount, String description) {
         Account account = accountRepository.findByAccountNumber(accountNumber)
                 .orElseThrow(() ->new RuntimeException("Account not found"));
-        if (account.getBalance().compareTo(amount) < 0) {
-            throw new RuntimeException("Insufficient funds");
-        }
+//        if (account.getBalance().compareTo(amount) < 0) {
+//            throw new RuntimeException("Insufficient funds");
+//        }
         account.setBalance(account.getBalance().add(amount));
         accountRepository.save(account);
 

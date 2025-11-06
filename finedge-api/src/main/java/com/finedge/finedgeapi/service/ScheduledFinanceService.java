@@ -9,12 +9,15 @@ import com.finedge.finedgeapi.repository.JobHistoryRepository;
 import com.finedge.finedgeapi.repository.TransactionRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.security.core.parameters.P;
+import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.function.BiFunction;
 
+@Service
 public class ScheduledFinanceService {
 
 
@@ -28,11 +31,29 @@ public class ScheduledFinanceService {
         this.jobHistoryRepository = jobHistoryRepository;
     }
 
-    @Scheduled(cron = "0 10 0 1 * *")
-    public void runMonthlyFeeJob(){
+
+    //@Scheduled(cron = "0 10 0 1 * *")
+    @Scheduled(cron = "0/30 * * * * *")
+    public void runMonthlyInterestJob(){
+        JobHistory history = startJob("monthly-interest");
+        try {
+            applyMonthlyInterest();
+            finishJobSuccess(history, "Monthly interest applied successfully.");
+        } catch (Exception e) {
+            finishJobFailure(history, e.toString());
+        }
+    }
+
+    //@Scheduled(cron = "0 10 0 1 * *")
+    @Scheduled(cron = "0/30 * * * * *")
+    public void runMonthlyFeeJob() {
         JobHistory history = startJob("monthly-fee");
-
-
+        try {
+            applyMonthlyFee();
+            finishJobSuccess(history, "Monthly fees applied successfully.");
+        } catch (Exception e) {
+            finishJobFailure(history, e.toString());
+        }
     }
 
     private JobHistory startJob(String jobName){
@@ -79,6 +100,34 @@ public class ScheduledFinanceService {
             txn.setDescription("Monthly Interest");
             transactionRepository.save(txn);
         }
+    }
+
+    @Transactional
+    protected void applyMonthlyFee(){
+        BigDecimal fee = new BigDecimal("2.00");
+        BigDecimal threshold = new BigDecimal("100.00");
+
+        List<Account> accounts = accountRepository.findByAccountType("SAVINGS");
+
+        for (Account acc: accounts){
+            if (acc.getBalance() == null) continue;
+
+            if (acc.getBalance().compareTo(threshold) < 0) {
+                if (acc.getBalance().compareTo(fee)<0) {
+                    continue;
+                }
+                acc.setBalance(acc.getBalance().subtract(fee));
+                accountRepository.save(acc);
+
+                Transaction txn = new Transaction();
+                txn.setSenderAccountNumber(acc.getAccountNumber());
+                txn.setAmount(fee);
+                txn.setType(TransactionType.WITHDRAW);
+                txn.setDescription("Monthly Maintenance Fee");
+                transactionRepository.save(txn);
+            }
+        }
+
     }
 
 
