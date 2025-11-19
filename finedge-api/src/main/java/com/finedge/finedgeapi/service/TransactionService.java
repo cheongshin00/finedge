@@ -1,5 +1,6 @@
 package com.finedge.finedgeapi.service;
 
+import com.finedge.finedgeapi.audit.Audit;
 import com.finedge.finedgeapi.entity.Account;
 import com.finedge.finedgeapi.entity.Transaction;
 import com.finedge.finedgeapi.entity.TransactionType;
@@ -22,6 +23,8 @@ public class TransactionService {
         this.transactionRepository = transactionRepository;
     }
 
+
+    @Audit(action = "TRANSFER", logRequest = true, logResponse = false)
     @Transactional
     public Transaction transfer(String senderAccNo, String receiverAccNo, BigDecimal amount, String description){
         Account sender = accountRepository.findByAccountNumber(senderAccNo)
