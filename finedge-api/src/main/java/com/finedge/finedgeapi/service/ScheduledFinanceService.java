@@ -1,5 +1,6 @@
 package com.finedge.finedgeapi.service;
 
+import com.finedge.finedgeapi.audit.Audit;
 import com.finedge.finedgeapi.entity.Account;
 import com.finedge.finedgeapi.entity.JobHistory;
 import com.finedge.finedgeapi.entity.Transaction;
@@ -33,6 +34,7 @@ public class ScheduledFinanceService {
 
 
     //@Scheduled(cron = "0 10 0 1 * *")
+    @Audit(action = "MonthlyInterest", logRequest = true, logResponse = false)
     @Scheduled(cron = "0/30 * * * * *")
     public void runMonthlyInterestJob(){
         JobHistory history = startJob("monthly-interest");
@@ -45,6 +47,7 @@ public class ScheduledFinanceService {
     }
 
     //@Scheduled(cron = "0 10 0 1 * *")
+    @Audit(action = "MonthlyFee", logRequest = true, logResponse = false)
     @Scheduled(cron = "0/30 * * * * *")
     public void runMonthlyFeeJob() {
         JobHistory history = startJob("monthly-fee");

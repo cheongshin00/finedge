@@ -1,5 +1,6 @@
 package com.finedge.finedgeapi.service;
 
+import com.finedge.finedgeapi.audit.Audit;
 import com.finedge.finedgeapi.entity.Account;
 import com.finedge.finedgeapi.entity.User;
 import com.finedge.finedgeapi.repository.AccountRepository;
@@ -34,6 +35,7 @@ public class AccountService {
         return repo.findById(id);
     }
 
+    @Audit(action = "CreateAccount", logRequest = true, logResponse = false)
     @Transactional
     public Account create(User user, String accountType , String currency){
         Account account = Account.builder()

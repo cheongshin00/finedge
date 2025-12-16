@@ -1,5 +1,6 @@
 package com.finedge.finedgeapi.service;
 
+import com.finedge.finedgeapi.audit.Audit;
 import com.finedge.finedgeapi.entity.Role;
 import com.finedge.finedgeapi.entity.User;
 import com.finedge.finedgeapi.repository.UserRepository;
@@ -29,6 +30,7 @@ public class AuthService {
         this.jwtUtil = jwtUtil;
     }
 
+    @Audit(action = "Login", logRequest = true, logResponse = false)
     public String login(String username, String password){
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(username, password)
@@ -38,6 +40,7 @@ public class AuthService {
 
     }
 
+    @Audit(action = "Register", logRequest = true, logResponse = false)
     public void register(String username, String password, Role role) {
         if (userRepository.findByUsername(username).isPresent()) {
             throw new RuntimeException("Username already exists");
