@@ -2,6 +2,7 @@ package com.finedge.finedgeapi.service;
 
 import com.finedge.finedgeapi.entity.Account;
 import com.finedge.finedgeapi.entity.User;
+import com.finedge.finedgeapi.monitoring.AccountMetrics;
 import com.finedge.finedgeapi.repository.AccountRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.security.core.Authentication;
@@ -17,9 +18,10 @@ import java.util.UUID;
 @Service
 public class AccountService {
     private final AccountRepository repo;
-
-    public AccountService(AccountRepository repo){
+    private final AccountMetrics metrics;
+    public AccountService(AccountRepository repo, AccountMetrics metrics){
         this.repo = repo;
+        this.metrics = metrics;
     }
 
     public List<Account> getAccountByUser(User user){
@@ -44,6 +46,8 @@ public class AccountService {
                 .createdDt(LocalDateTime.now())
                 .user(user)
                 .build();
+
+        metrics.increment();
 
         return repo.save(account);
     }
