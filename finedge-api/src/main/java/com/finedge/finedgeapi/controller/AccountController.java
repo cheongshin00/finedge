@@ -1,5 +1,6 @@
 package com.finedge.finedgeapi.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.finedge.finedgeapi.entity.Account;
 import com.finedge.finedgeapi.entity.User;
 import com.finedge.finedgeapi.security.CustomUserDetails;
@@ -26,9 +27,10 @@ public class AccountController {
 
     @PostMapping
     public Account createAccount(@AuthenticationPrincipal CustomUserDetails userDetails,
-                                 @RequestParam String accountType, @RequestParam String currency){
+                                 @RequestParam String accountType, @RequestParam String currency,
+                                 @RequestHeader("Idempotency-Key") String idempotencyKey) throws JsonProcessingException {
         User user = userDetails.getUser();
-        return accountService.create(user, accountType,currency);
+        return accountService.create(user, accountType,currency, idempotencyKey);
 
     }
 }

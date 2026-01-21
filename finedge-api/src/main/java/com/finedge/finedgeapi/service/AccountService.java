@@ -1,11 +1,18 @@
 package com.finedge.finedgeapi.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.finedge.finedgeapi.audit.Audit;
 import com.finedge.finedgeapi.entity.Account;
+import com.finedge.finedgeapi.entity.IdempotencyRecord;
 import com.finedge.finedgeapi.entity.User;
 import com.finedge.finedgeapi.monitoring.AccountMetrics;
 import com.finedge.finedgeapi.repository.AccountRepository;
+import com.finedge.finedgeapi.repository.IdempotencyRecordRepository;
 import jakarta.transaction.Transactional;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -19,9 +26,12 @@ import java.util.UUID;
 @Service
 public class AccountService {
     private final AccountRepository repo;
+    private final IdempotencyRecordRepository idempotencyRepo;
     private final AccountMetrics metrics;
-    public AccountService(AccountRepository repo, AccountMetrics metrics){
+
+    public AccountService(AccountRepository repo, IdempotencyRecordRepository idempotencyRepo, AccountMetrics metrics){
         this.repo = repo;
+        this.idempotencyRepo = idempotencyRepo;
         this.metrics = metrics;
     }
 
@@ -39,7 +49,16 @@ public class AccountService {
 
     @Audit(action = "CreateAccount", logRequest = true, logResponse = false)
     @Transactional
-    public Account create(User user, String accountType , String currency){
+    public Account create(User user, String accountType , String currency, String idempotencyKey)
+    throws JsonProcessingException {
+
+        Optional<IdempotencyRecord> existingKey = idempotencyRepo.findByIdempotencyKey(idempotencyKey);
+
+        if(existingKey.isPresent()) {
+            return repo.findById(Long.valueOf(existingKey.get().getResourceId())
+            ).orElseThrow(()-> new IllegalStateException("Idempotent resource not found"));
+        }
+
         Account account = Account.builder()
                 .accountNumber(UUID.randomUUID().toString().substring(0,10))
                 .accountType(accountType)
@@ -49,9 +68,19 @@ public class AccountService {
                 .user(user)
                 .build();
 
+        Account savedAccount = repo.save(account);
+
+        IdempotencyRecord key = new IdempotencyRecord();
+        key.setIdempotencyKey(idempotencyKey);
+        key.setResourceId(savedAccount.getId().toString());
+        key.setResourceType("ACCOUNT");
+        key.setCreatedAt(LocalDateTime.now());
+
+        idempotencyRepo.save(key);
+
         metrics.increment();
 
-        return repo.save(account);
+        return savedAccount;
     }
 
     public Account getAccountByAccountNumber(String accountNumber){
